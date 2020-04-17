@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"github.com/fatih/structs"
+	"github.com/hyperdidact/structs"
 	"reflect"
 	"strconv"
 )
