@@ -1,10 +1,12 @@
 package utils
 
 import (
+	"github.com/spf13/cobra"
 	"io/ioutil"
 	"log"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/codegangsta/cli"
@@ -60,6 +62,41 @@ func GenerateFlags(options ...interface{}) (flags []cli.Flag, mappings map[strin
 	}
 
 	return
+}
+
+func GenerateCobraFlags(cmd *cobra.Command,options ...interface{}) (*cobra.Command, map[string]string, error) {
+	result := *cmd
+
+	for _, struct_ := range options{
+		o := structs.New(struct_)
+		for _, field := range o.Fields(){
+			flagName := field.Tag("flagName")
+			if flagName == ""{
+				continue
+			}
+			flagDescription := field.Tag("flagDescribe")
+			flagShortName := field.Tag("flagSName")
+			defaultValueString := field.Tag("default")
+
+
+			switch field.Kind() {
+				case reflect.String:
+					Source := field.Value().(string)
+					defaultValue := defaultValueString
+					result.Flags().StringVarP(&Source, flagName, flagShortName, defaultValue, flagDescription)
+				case reflect.Bool:
+					Source := field.Value().(bool)
+					defaultValue, _ := strconv.ParseBool(defaultValueString)
+					result.Flags().BoolVarP(&Source, flagName, flagShortName, defaultValue , flagDescription)
+				case reflect.Int:
+					Source := field.Value().(int)
+					defaultValue, _ := strconv.Atoi(defaultValueString)
+					result.Flags().IntVarP(&Source, flagName, flagShortName, defaultValue , flagDescription)
+			}
+		}
+	}
+
+	return &result, nil, nil
 }
 
 func ApplyFlags(
